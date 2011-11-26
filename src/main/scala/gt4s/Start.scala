@@ -7,10 +7,7 @@ import util.Properties
 
 object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
   def intent = {
-    case Path(Seg(Nil)) & Params(params) => {
-      ResponseString("Welcome to gt4s")
-    }
-    case Path(_) => ResponseString("Hello from Unfiltered!")
+		 case GET(_) => Ok ~> ResponseString("Welcome to gt4s")
   }
 }
 
