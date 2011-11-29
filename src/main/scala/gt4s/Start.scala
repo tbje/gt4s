@@ -9,7 +9,7 @@ object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
   def classPathInputStream(path :String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)
 
   def index = 
-    Option(classPathInputStream("index.html")).map { is => io.Source.fromInputStream(is).getLines.mkString }
+    Option(classPathInputStream("index.html")).map { is => io.Source.fromInputStream(is).map(_.toByte).toArray }
   
   def intent = {
     case POST(Path("/enc") & Params(params)) =>
@@ -25,7 +25,7 @@ object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
     case GET(Path("/enc") | Path("/dec")) =>
       MethodNotAllowed ~> ResponseString("Use POST HTTP method.")
     case GET(_) =>  index.map { 
-                      p => Ok ~>  ResponseString(p) 
+                      p => Ok ~>  ResponseBytes(p) 
                     }.getOrElse{ 
                       InternalServerError ~> ResponseString("I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not.") 
                     }
