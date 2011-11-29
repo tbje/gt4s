@@ -21,3 +21,4 @@ libraryDependencies ++= {
     "net.databinder" %% "unfiltered-json" % unfilteredVersion
 	)}
 
+scalacOptions ++= Seq("-unchecked", "-deprecation") //get those warnings on compile...
