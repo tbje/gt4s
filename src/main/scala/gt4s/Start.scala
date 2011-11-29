@@ -6,6 +6,11 @@ import unfiltered.netty._
 import util.Properties
 
 object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
+  def inputStream(path :String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)
+
+  def index = 
+    Option(inputStream("index.html")).map { is => io.Source.fromInputStream(is).getLines.mkString("\n") }
+  
   def intent = {
     case POST(Path("/enc") & Params(params)) =>
       params("q") match {
@@ -19,7 +24,11 @@ object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
       }
     case GET(Path("/enc") | Path("/dec")) =>
       MethodNotAllowed ~> ResponseString("Use POST HTTP method.")
-    case GET(_) => Ok ~> ResponseString("Welcome to gt4s. POST data to /enc or /dec using `q` parameter.")
+    case GET(_) =>  index.map { 
+                      p => Ok ~>  ResponseString(p) 
+                    }.getOrElse{ 
+                      InternalServerError ~> ResponseString("I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not.") 
+                    }
   }
 }
 

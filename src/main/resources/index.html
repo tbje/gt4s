@@ -1,0 +1,19 @@
+<html>
+
+<head>
+<title>GT4S</title>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+
+</head>
+
+<body>
+
+<input type="text" placeholder="Ur expression goes here"
+onkeyup="$.post('enc', {q:$(this).val()}, function(responseText){  $('#results').html(responseText);  }, 'html' );"/>
+
+<div id="results"/>
+
+</body>
+</html>
