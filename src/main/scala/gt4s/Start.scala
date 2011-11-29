@@ -6,10 +6,10 @@ import unfiltered.netty._
 import util.Properties
 
 object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
-  def inputStream(path :String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)
+  def classPathInputStream(path :String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)
 
   def index = 
-    Option(inputStream("index.html")).map { is => io.Source.fromInputStream(is).getLines.mkString("\n") }
+    Option(classPathInputStream("index.html")).map { is => io.Source.fromInputStream(is).getLines.mkString }
   
   def intent = {
     case POST(Path("/enc") & Params(params)) =>
