@@ -5,15 +5,18 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
-
 </head>
 
 <body>
-
-<input type="text" placeholder="Ur expression goes here"
-onkeyup="$.post('enc', {q:$(this).val()}, function(responseText){  $('#results').html(responseText);  }, 'html' );"/>
-
-<div id="results"/>
-
+  <div id="content" style="margin: 30px">
+    <div id="title">
+			<h1 style="color: grey">gt4s</h1>
+    </div>
+		<form method="POST" action="encRedirect">
+			<input name="q" type="text" placeholder="Ur expression goes here" onkeyup="$.post('enc', {q:$(this).val()}, function(responseText){  $('#results').html(responseText);  }, 'html' );"/>
+			<input type="submit" value="Search"/>	
+		</form>	
+		<div id="results"/>
+  </div>
 </body>
 </html>
