@@ -39,6 +39,11 @@ object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
         case Seq(q) =>	Ok ~> ResponseString(scala.reflect.NameTransformer.decode(q))
         case _ =>       BadRequest ~> ResponseString("Post data to be encoded in q parameter.")
       }
+    case POST(Path("/encRedirect") & Params(params)) =>
+      params("q") match {
+        case Seq(q) =>	Ok ~> Redirect("http://www.google.com/?q=%s" format scala.reflect.NameTransformer.encode(q))
+        case _ =>       BadRequest ~> ResponseString("Post data to be encoded in q parameter.")
+      }
     case GET(Path("/enc") | Path("/dec")) =>
       MethodNotAllowed ~> ResponseString("Use POST HTTP method.")
     case GET(_) =>	
