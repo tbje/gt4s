@@ -1,34 +1,48 @@
 package gt4s
 
 import unfiltered.request._
-import unfiltered.response._
+import unfiltered.response.{ Stream => _, _ }
 import unfiltered.netty._
 import util.Properties
+import java.io.{ InputStream, OutputStream }
 
 object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
-  def classPathInputStream(path :String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)
+	abstract sealed class StaticFile(val path: String)
+	case object Index extends StaticFile("index.html") 		
 
-  def index = 
-    Option(classPathInputStream("index.html")).map { is => io.Source.fromInputStream(is).map(_.toByte).toArray }
-  
+	def using[T <: { def close() }] (resource: T)(block: T => Unit) {
+		try { block(resource) } finally { if (resource != null) resource.close() }
+  }
+
+	object File {
+		private def classPathInputStream(path: String) = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)		
+		def apply (file: StaticFile) = Option(classPathInputStream(file.path)) match {
+				case Some(is) => 
+					Ok ~> FileStreamer(is)
+				case None =>
+					InternalServerError ~> ResponseString("I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not.")
+			}
+	}
+
+	case class FileStreamer (is: InputStream) extends ResponseStreamer {
+		def stream(os: OutputStream) = Stream.continually(is.read).takeWhile(-1 !=).foreach(os.write(_))
+	}
+
   def intent = {
     case POST(Path("/enc") & Params(params)) =>
       params("q") match {
-        case Seq(q) => Ok ~> ResponseString(scala.reflect.NameTransformer.encode(q))
+        case Seq(q) =>	Ok ~> ResponseString(scala.reflect.NameTransformer.encode(q))
         case _ =>       BadRequest ~> ResponseString("Post data to be encoded in q parameter.")
       }
     case POST(Path("/dec") & Params(params)) =>
       params("q") match {
-        case Seq(q) => Ok ~> ResponseString(scala.reflect.NameTransformer.decode(q))
+        case Seq(q) =>	Ok ~> ResponseString(scala.reflect.NameTransformer.decode(q))
         case _ =>       BadRequest ~> ResponseString("Post data to be encoded in q parameter.")
       }
     case GET(Path("/enc") | Path("/dec")) =>
       MethodNotAllowed ~> ResponseString("Use POST HTTP method.")
-    case GET(_) =>  index.map { 
-                      p => Ok ~>  ResponseBytes(p) 
-                    }.getOrElse{ 
-                      InternalServerError ~> ResponseString("I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not.") 
-                    }
+    case GET(_) =>	
+		 	File(Index) 
   }
 }
 
