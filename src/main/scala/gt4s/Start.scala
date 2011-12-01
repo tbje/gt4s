@@ -20,12 +20,13 @@ object Hello extends cycle.Plan with cycle.ThreadPool with ServerErrorResponse {
 				case Some(is) => 
 					Ok ~> FileStreamer(is)
 				case None =>
-					InternalServerError ~> ResponseString("I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not.")
+					val msg = "I am sorry I cannot load your request :( I expected to be able to load a file but, alas, I could not."	
+					InternalServerError ~> ResponseString(msg)
 			}
 	}
 
 	case class FileStreamer (is: InputStream) extends ResponseStreamer {
-		def stream(os: OutputStream) = Stream.continually(is.read).takeWhile(-1 !=).foreach(os.write(_))
+		def stream(os: OutputStream) = using(is)(is=>Stream.continually(is.read).takeWhile(-1 !=).foreach(os.write(_)))
 	}
 
   def intent = {
